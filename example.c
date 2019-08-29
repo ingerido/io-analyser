@@ -16,6 +16,8 @@ void *read_thread(void *arg) {
 	for (int i = 0; i < ITER; ++i)
 		read(fd, buf, 1024);
 
+	pread(fd, buf, 1024, 1024);
+
 	return NULL;
 }
 
@@ -25,6 +27,8 @@ void *write_thread(void *arg) {
 	memset(buf, 0x31, 4096);
 
 	write(fd, buf, 4096);
+	
+	pwrite(fd, buf, 1024, 4096);
 }
 
 int main(int argc, char **argv) {

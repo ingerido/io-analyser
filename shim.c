@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include <linux/limits.h>
+#include <pthread.h>
 
 #include <libsyscall_intercept_hook_point.h>
 
@@ -15,9 +16,10 @@
 
 static int initialized = 0;
 static FILE *rec_file = NULL;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // Only works on Linux
-void record_syscall(int fd, char *ope) {
+void record_syscall(int fd, char *ope, size_t count, loff_t off) {
     char fd_path[PATH_MAX];
 	char file_path[PATH_MAX];
 	char record[512];
@@ -28,6 +30,10 @@ void record_syscall(int fd, char *ope) {
 		if ((rec_file = fopen(RECORD, "a")) == NULL) {
 			exit(0);
 		}
+
+		sprintf(record, "File Path | PID | TID | Operation | IO size | Offset");
+		fprintf(rec_file,"%s\n", record); 
+	
 		initialized = 1;
 	}
 
@@ -43,114 +49,48 @@ void record_syscall(int fd, char *ope) {
 	tid = syscall(SYS_gettid);
 
 	/* Insert this system call record to file */
-	sprintf(record, "%s, %d, %d, %s", file_path, pid, tid, ope);
-	//printf("%s\n", record);
+	sprintf(record, "%s | %d | %d | %s | %lu | %lu", file_path, pid, tid, ope, count, off);
 	fprintf(rec_file,"%s\n", record); 
-
 }
 
-ssize_t read(int fd, void *buf, size_t count) {
+int shim_do_read(int fd, void *buf, size_t count, size_t* result) {
 
-    size_t (*lread)(int, void*, size_t) = dlsym(RTLD_NEXT, "read");
+	loff_t off = lseek(fd, 0, SEEK_CUR);
 
-	record_syscall(fd, "read");
-
-    return lread(fd, buf, count);
+	pthread_mutex_lock(&mutex);
+	record_syscall(fd, "read", count, off);
+	pthread_mutex_unlock(&mutex);
+  
+	return 1;
 }
 
+int shim_do_pread64(int fd, void *buf, size_t count, loff_t off, size_t* result) {
 
-ssize_t pread(int fd, void *buf, size_t count, off_t offset) {
-
-    size_t (*lpread)(int, void*, size_t, off_t) = dlsym(RTLD_NEXT, "pread");
-
-	record_syscall(fd, "pread");
-
-    return lpread(fd, buf, count, offset);
+	pthread_mutex_lock(&mutex);
+	record_syscall(fd, "pread", count, off);
+	pthread_mutex_unlock(&mutex);
+  
+	return 1;
 }
 
+int shim_do_write(int fd, void *buf, size_t count, size_t* result) {
 
-ssize_t write(int fd, const void *buf, size_t count) {
+	loff_t off = lseek(fd, 0, SEEK_CUR);
 
-    size_t (*lwrite)(int, const void*, size_t) = dlsym(RTLD_NEXT, "write");
-
-	record_syscall(fd, "write");
-
-    return lwrite(fd, buf, count);
+	pthread_mutex_lock(&mutex);
+	record_syscall(fd, "write", count, off);
+	pthread_mutex_unlock(&mutex);
+  
+	return 1;
 }
 
+int shim_do_pwrite64(int fd, void *buf, size_t count, loff_t off, size_t* result) {
 
-ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset) {
-
-    size_t (*lpwrite)(int, const void*, size_t, off_t) = dlsym(RTLD_NEXT, "pwrite");
-
-	record_syscall(fd, "pwrite");
-
-    return lpwrite(fd, buf, count, offset);
-}
-
-int shim_do_read(int fd, void *buf, size_t count, size_t* result)
-{
-  size_t ret;
-
-  if (check_mlfs_fd(fd)) {
-    ret = mlfs_posix_read(get_mlfs_fd(fd), buf, count);
-    syscall_trace(__func__, ret, 3, fd, buf, count);
-
-    *result = ret;
-    return 0;
-  } else {
-    return 1;
-  }
-}
-
-int shim_do_pread64(int fd, void *buf, size_t count, loff_t off, size_t* result)
-{
-  size_t ret;
-
-  if (check_mlfs_fd(fd)) {
-    ret = mlfs_posix_pread64(get_mlfs_fd(fd), buf, count, off);
-    syscall_trace(__func__, ret, 4, fd, buf, count, off);
-
-    *result = ret;
-    return 0;
-  } else {
-    return 1;
-  }
-}
-
-int shim_do_write(int fd, void *buf, size_t count, size_t* result)
-{
-  size_t ret;
-
-  if (check_mlfs_fd(fd)) {
-    ret = mlfs_posix_write(get_mlfs_fd(fd), buf, count);
-    syscall_trace(__func__, ret, 3, fd, buf, count);
-
-    *result = ret;
-    return 0;
-  } else {
-    return 1;
-  }
-
-}
-
-int shim_do_pwrite64(int fd, void *buf, size_t count, loff_t off, size_t* result)
-{
-  size_t ret;
-
-  if (check_mlfs_fd(fd)) {
-    /*
-    ret = mlfs_posix_pwrite64(get_mlfs_fd(fd), buf, count, off);
-    syscall_trace(__func__, ret, 4, fd, buf, count, off);
-
-    *result = ret;
-    */
-    printf("%s: does not support yet\n", __func__);
-    exit(-1);
-  } else {
-    return 1;
-  }
-
+	pthread_mutex_lock(&mutex);
+	record_syscall(fd, "pwrite", count, off);
+	pthread_mutex_unlock(&mutex);
+  
+	return 1;
 }
 
 

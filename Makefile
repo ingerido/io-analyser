@@ -10,7 +10,7 @@ shim.so:
 	$(CC) $(INCLUDE) shim.c $(SHIMLDFLAGS) -fpic -shared -o shim.so
 
 example:
-	$(CC) -g -lpthread -o example example.c
+	$(CC) -g -pthread -o example example.c
 
 clean:
-	rm -rf example shim.so
+	rm -rf example shim.so #syscall_intercept
