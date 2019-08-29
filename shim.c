@@ -64,25 +64,24 @@ void record_syscall(int fd, char *ope, size_t count, loff_t off) {
 
 	/* Insert this system call record to file */
 	sprintf(record, "%s | %d | %d | %s | %lu | %lu", file_path, pid, tid, ope, count, off);
-	fprintf(rec_file,"%s\n", record); 
+
+	pthread_mutex_lock(&mutex);
+	fprintf(rec_file,"%s\n", record);
+	pthread_mutex_unlock(&mutex);
 }
 
 int shim_do_read(int fd, void *buf, size_t count, size_t* result) {
 
 	loff_t off = lseek(fd, 0, SEEK_CUR);
 
-	pthread_mutex_lock(&mutex);
 	record_syscall(fd, "read", count, off);
-	pthread_mutex_unlock(&mutex);
   
 	return 1;
 }
 
 int shim_do_pread64(int fd, void *buf, size_t count, loff_t off, size_t* result) {
 
-	pthread_mutex_lock(&mutex);
 	record_syscall(fd, "pread", count, off);
-	pthread_mutex_unlock(&mutex);
   
 	return 1;
 }
@@ -91,18 +90,14 @@ int shim_do_write(int fd, void *buf, size_t count, size_t* result) {
 
 	loff_t off = lseek(fd, 0, SEEK_CUR);
 
-	pthread_mutex_lock(&mutex);
 	record_syscall(fd, "write", count, off);
-	pthread_mutex_unlock(&mutex);
   
 	return 1;
 }
 
 int shim_do_pwrite64(int fd, void *buf, size_t count, loff_t off, size_t* result) {
 
-	pthread_mutex_lock(&mutex);
 	record_syscall(fd, "pwrite", count, off);
-	pthread_mutex_unlock(&mutex);
   
 	return 1;
 }
