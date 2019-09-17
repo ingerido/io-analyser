@@ -11,7 +11,10 @@ if not os.path.isfile(filepath):
 
 totalIO = 0
 concurrentIO = 0
-smallIO = 0
+IO_1K = 0
+IO_1K_4K = 0
+IO_4K_16K = 0
+IO_16K = 0
 smallRandIO = 0
 filelist = []
 linenum = 0
@@ -30,10 +33,10 @@ with open(filepath) as f:
         cur = [fields[0], fields[2], fields[5], linenum]
         last = [item for item in filelist if item[0] == fields[0]]
         if len(last) == 1:
-            if last[0][1] != fields[2] and linenum - last[0][3] < 70:
+            if last[0][1] != fields[2] and linenum - last[0][3] < 256:
             #if last[0][1] != fields[2]:
                 concurrentIO = concurrentIO + 1
-                if int(fields[4]) < 10240:
+                if int(fields[4]) < 4096:
                     smallRandIO = smallRandIO + 1
                 last[0][1] = fields[2]
                 last[0][2] = fields[5]
@@ -41,17 +44,29 @@ with open(filepath) as f:
         else:
             filelist.append(cur)
          
-        if int(fields[4]) < 10240:
-            smallIO = smallIO + 1
+        if int(fields[4]) <= 1024:
+            IO_1K = IO_1K + 1
+        elif int(fields[4]) > 1024 and int(fields[4]) <= 4096:
+            IO_1K_4K = IO_1K_4K + 1
+        elif int(fields[4]) > 4096 and int(fields[4]) <= 16384:
+            IO_4K_16K = IO_4K_16K + 1
+        elif int(fields[4]) > 16384:
+            IO_16K = IO_16K + 1
 
         totalIO = totalIO + 1
         linenum = linenum + 1
 
 print "totalIO = ", totalIO 
 print "concurrentIO = ", concurrentIO 
-print "smallIO = ", smallIO 
+print "IO_1K = ", IO_1K
+print "IO_1K_4K = ", IO_1K_4K
+print "IO_4K_16K = ", IO_4K_16K
+print "IO_16K = ", IO_16K
 print "smallRandIO = ", smallRandIO
 
-print "concurrentIO ", float(concurrentIO)/totalIO, "%" 
-print "smallIO ", float(smallIO)/totalIO, "%" 
-print "smallRandIO ", float(smallRandIO)/totalIO, "%" 
+print "concurrentIO ", float(concurrentIO)/totalIO 
+print "IO_1K ", float(IO_1K)/totalIO
+print "IO_1K_4K ", float(IO_1K_4K)/totalIO
+print "IO_4K_16K ", float(IO_4K_16K)/totalIO
+print "IO_16K ", float(IO_16K)/totalIO
+print "smallRandIO ", float(smallRandIO)/totalIO
