@@ -2,7 +2,7 @@
 
 set -x
 
-sudo apt-get install pkg-config libcapstone-dev
+sudo apt-get install cmake pkg-config libcapstone-dev
 
 if [ ! -d syscall_intercept ]; then
 	git clone https://github.com/pmem/syscall_intercept.git

@@ -33,8 +33,8 @@ with open(filepath) as f:
         cur = [fields[0], fields[2], fields[5], linenum]
         last = [item for item in filelist if item[0] == fields[0]]
         if len(last) == 1:
-            if last[0][1] != fields[2] and linenum - last[0][3] < 256:
-            #if last[0][1] != fields[2]:
+            #if last[0][1] != fields[2] and linenum - last[0][3] < 256:
+            if last[0][1] != fields[2]:
                 concurrentIO = concurrentIO + 1
                 if int(fields[4]) < 4096:
                     smallRandIO = smallRandIO + 1
