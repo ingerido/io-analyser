@@ -4,8 +4,11 @@ io-analyser is a tiny shared library that gives you statistics of read/write sys
 This repo is also with an example.
 
 ## make
+```
 > git clone https://github.com/pmem/syscall_intercept.git
 > ./makeshim.sh
+> make
+```
 
 ## run
 
