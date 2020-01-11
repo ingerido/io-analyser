@@ -70,6 +70,24 @@ void record_syscall(int fd, char *ope, size_t count, loff_t off) {
 	pthread_mutex_unlock(&mutex);
 }
 
+int shim_do_open(char *filename, int flags, mode_t mode, int* result)
+{
+	record_syscall(0, "open", 0, 0);
+	return 1;
+}
+
+int shim_do_openat(int dfd, const char *filename, int flags, mode_t mode, int* result)
+{
+	record_syscall(dfd, "openat", 0, 0);
+	return 1;
+}
+
+int shim_do_creat(char *filename, mode_t mode, int* result)
+{
+	record_syscall(0, "creat", 0, 0);
+	return 1;
+}
+
 int shim_do_read(int fd, void *buf, size_t count, size_t* result) {
 
 	loff_t off = lseek(fd, 0, SEEK_CUR);
@@ -102,6 +120,122 @@ int shim_do_pwrite64(int fd, void *buf, size_t count, loff_t off, size_t* result
 	return 1;
 }
 
+int shim_do_close(int fd, int* result)
+{
+	record_syscall(fd, "creat", 0, 0);
+	return 1;
+}
+
+int shim_do_lseek(int fd, off_t offset, int origin, int* result)
+{
+	record_syscall(fd, "creat", 0, 0);
+	return 1;
+}
+
+int shim_do_mkdir(void *path, mode_t mode, int* result)
+{
+	record_syscall(0, "mkdir", 0, 0);
+	return 1;
+}
+
+int shim_do_rmdir(const char *path, int* result)
+{
+	record_syscall(0, "rmdir", 0, 0);
+	return 1;
+}
+
+int shim_do_rename(char *oldname, char *newname, int* result)
+{
+	record_syscall(0, "rename", 0, 0);
+	return 1;
+}
+
+int shim_do_fallocate(int fd, int mode, off_t offset, off_t len, int* result)
+{
+	record_syscall(0, "fallocate", 0, 0);
+	return 1;
+}
+
+int shim_do_stat(const char *filename, struct stat *statbuf, int* result)
+{
+	record_syscall(0, "stat", 0, 0);
+	return 1;
+}
+
+int shim_do_lstat(const char *filename, struct stat *statbuf, int* result)
+{
+	record_syscall(0, "lstat", 0, 0);
+	return 1;
+}
+
+int shim_do_fstat(int fd, struct stat *statbuf, int* result)
+{
+	record_syscall(fd, "fstat", 0, 0);
+	return 1;
+}
+
+int shim_do_truncate(const char *filename, off_t length, int* result)
+{
+	record_syscall(0, "trunate", 0, 0);
+	return 1;
+}
+
+int shim_do_ftruncate(int fd, off_t length, int* result)
+{
+	record_syscall(fd, "ftruncate", 0, 0);
+	return 1;
+}
+
+int shim_do_unlink(const char *path, int* result)
+{
+	record_syscall(0, "unlink", 0, 0);
+	return 1;
+}
+
+int shim_do_symlink(const char *target, const char *linkpath, int* result)
+{
+	record_syscall(0, "symlink", 0, 0);
+	return 1;
+}
+
+int shim_do_access(const char *pathname, int mode, int* result)
+{
+	record_syscall(0, "access", 0, 0);
+	return 1;
+}
+
+int shim_do_fsync(int fd, int* result)
+{
+	record_syscall(fd, "fsync", 0, 0);
+	return 1;
+}
+
+int shim_do_fdatasync(int fd, int* result)
+{
+	record_syscall(fd, "fdatasync", 0, 0);
+	return 1;
+}
+
+int shim_do_sync(int* result)
+{
+	return 1;
+}
+
+int shim_do_fcntl(int fd, int cmd, void *arg, int* result)
+{
+	return 1;
+}
+
+int shim_do_mmap(void *addr, size_t length, int prot,
+                   int flags, int fd, off_t offset, void** result)
+{
+	return 1;
+}
+
+int shim_do_munmap(void *addr, size_t length, int* result)
+{
+	return 1;
+}
 
 static int hook(long syscall_number,
 	long arg0, long arg1,
@@ -109,14 +243,14 @@ static int hook(long syscall_number,
 	long arg4, long arg5,
 	long *result) {
 	switch (syscall_number) {
-		/*case SYS_open: return shim_do_open((char*)arg0, (int)arg1, (mode_t)arg2, (int*)result);
+		case SYS_open: return shim_do_open((char*)arg0, (int)arg1, (mode_t)arg2, (int*)result);
 		case SYS_openat: return shim_do_openat((int)arg0, (const char*)arg1, (int)arg2, (mode_t)arg3, (int*)result);
-		case SYS_creat: return shim_do_creat((char*)arg0, (mode_t)arg1, (int*)result);*/
+		case SYS_creat: return shim_do_creat((char*)arg0, (mode_t)arg1, (int*)result);
 		case SYS_read: return shim_do_read((int)arg0, (void*)arg1, (size_t)arg2, (size_t*)result);
 		case SYS_pread64: return shim_do_pread64((int)arg0, (void*)arg1, (size_t)arg2, (loff_t)arg3, (size_t*)result);
 		case SYS_write: return shim_do_write((int)arg0, (void*)arg1, (size_t)arg2, (size_t*)result);
 		case SYS_pwrite64: return shim_do_pwrite64((int)arg0, (void*)arg1, (size_t)arg2, (loff_t)arg3, (size_t*)result);
-		/*case SYS_close: return shim_do_close((int)arg0, (int*)result);
+		case SYS_close: return shim_do_close((int)arg0, (int*)result);
 		case SYS_lseek: return shim_do_lseek((int)arg0, (off_t)arg1, (int)arg2, (int*)result);
 		case SYS_mkdir: return shim_do_mkdir((void*)arg0, (mode_t)arg1, (int*)result);
 		case SYS_rmdir: return shim_do_rmdir((const char*)arg0, (int*)result);
@@ -136,7 +270,7 @@ static int hook(long syscall_number,
 		case SYS_fcntl: return shim_do_fcntl((int)arg0, (int)arg1, (void*)arg2, (int*)result);
 		case SYS_mmap: return shim_do_mmap((void*)arg0, (size_t)arg1, (int)arg2, (int)arg3, (int)arg4, (off_t)arg5, (void**)result);
 		case SYS_munmap: return shim_do_munmap((void*)arg0, (size_t)arg1, (int*)result);
-		case SYS_getdents: return shim_do_getdents((int)arg0, (struct linux_dirent*)arg1, (size_t)arg2, (size_t*)result);
+		/*case SYS_getdents: return shim_do_getdents((int)arg0, (struct linux_dirent*)arg1, (size_t)arg2, (size_t*)result);
 		case SYS_getdents64: return shim_do_getdents64((int)arg0, (struct linux_dirent64*)arg1, (size_t)arg2, (size_t*)result);*/
 	}
 	return 1;
