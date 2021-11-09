@@ -243,14 +243,14 @@ static int hook(long syscall_number,
 	long arg4, long arg5,
 	long *result) {
 	switch (syscall_number) {
-		case SYS_open: return shim_do_open((char*)arg0, (int)arg1, (mode_t)arg2, (int*)result);
+		/*case SYS_open: return shim_do_open((char*)arg0, (int)arg1, (mode_t)arg2, (int*)result);
 		case SYS_openat: return shim_do_openat((int)arg0, (const char*)arg1, (int)arg2, (mode_t)arg3, (int*)result);
-		case SYS_creat: return shim_do_creat((char*)arg0, (mode_t)arg1, (int*)result);
+		case SYS_creat: return shim_do_creat((char*)arg0, (mode_t)arg1, (int*)result);*/
 		case SYS_read: return shim_do_read((int)arg0, (void*)arg1, (size_t)arg2, (size_t*)result);
 		case SYS_pread64: return shim_do_pread64((int)arg0, (void*)arg1, (size_t)arg2, (loff_t)arg3, (size_t*)result);
 		case SYS_write: return shim_do_write((int)arg0, (void*)arg1, (size_t)arg2, (size_t*)result);
 		case SYS_pwrite64: return shim_do_pwrite64((int)arg0, (void*)arg1, (size_t)arg2, (loff_t)arg3, (size_t*)result);
-		case SYS_close: return shim_do_close((int)arg0, (int*)result);
+		/*case SYS_close: return shim_do_close((int)arg0, (int*)result);
 		case SYS_lseek: return shim_do_lseek((int)arg0, (off_t)arg1, (int)arg2, (int*)result);
 		case SYS_mkdir: return shim_do_mkdir((void*)arg0, (mode_t)arg1, (int*)result);
 		case SYS_rmdir: return shim_do_rmdir((const char*)arg0, (int*)result);
@@ -270,7 +270,7 @@ static int hook(long syscall_number,
 		case SYS_fcntl: return shim_do_fcntl((int)arg0, (int)arg1, (void*)arg2, (int*)result);
 		case SYS_mmap: return shim_do_mmap((void*)arg0, (size_t)arg1, (int)arg2, (int)arg3, (int)arg4, (off_t)arg5, (void**)result);
 		case SYS_munmap: return shim_do_munmap((void*)arg0, (size_t)arg1, (int*)result);
-		/*case SYS_getdents: return shim_do_getdents((int)arg0, (struct linux_dirent*)arg1, (size_t)arg2, (size_t*)result);
+		case SYS_getdents: return shim_do_getdents((int)arg0, (struct linux_dirent*)arg1, (size_t)arg2, (size_t*)result);
 		case SYS_getdents64: return shim_do_getdents64((int)arg0, (struct linux_dirent64*)arg1, (size_t)arg2, (size_t*)result);*/
 	}
 	return 1;
